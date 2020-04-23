@@ -1,0 +1,25 @@
+#main
+
+import quicksort.sort
+
+/*
+ Programa principal: quicksort
+*/
+
+int[] vector = [8, 1, 9, 6, 5, 7, 2, 4, 3, 0]
+int tam = size(vector)
+
+// Array no ordenado
+for(e in vector) {
+	print(e + ',')
+}
+
+sort(vector, 0, tam-1)
+
+// Array ordenado
+int i = 0
+while(i <= tam) {
+ print (array[i])
+}
+
+free vector
