@@ -1,4 +1,9 @@
+%option noyywrap
+
 %{
+#include "SINTAX.tab.h"
+
+/*
 #define INTEGER 1
 #define FLOAT 2
 #define DOUBLE 3
@@ -55,8 +60,9 @@
 #define NULO 54
 #define FREE_MEM 55
 #define VOID 56
+*/
 
-int line = 1;
+int lineno = 1;
 int comment = 0;
 void error(char*);
 %}
@@ -68,10 +74,12 @@ letdig {letter}|{digit}
 diglet {digit}|{letter}
 
 %%
-("+"|-)?{digit}+ { return INTEGER; }
-("+"|-)?{digit}+"."{digit}+f { return FLOAT; }
-("+"|-)?{digit}+"."{digit}+ { return DOUBLE; }
+{digit}+ { return INTEGER; }
+{digit}+"."{digit}+f { return FLOAT; }
+{digit}+"."{digit}+ { return DOUBLE; }
+\".*\" { return STRING; }
 "'"."'" { return CHARACTER; }
+"'"\\[nt0r]"'" {return CHARACTER;}
 (true|false) { return BOOL; }
 ("+"|-)?{digit}+b { return BYTE; }
 "{" { return ABRELLAVE; }
@@ -82,16 +90,23 @@ diglet {digit}|{letter}
 "]" { return CIERRACORCHETE; }
 ">" { return MAYOR; }
 "<" { return MENOR; }
+"+=" { return MASIGUAL; }
+"-=" { return MENOSIGUAL; }
+"*=" { return MULTIGUAL; }
+"/=" { return DIVIGUAL; }
 "==" { return IGUALA; }
+"=" { return IGUAL; }
 "!=" { return DISTINTO; }
 ">=" { return MAYORIGUAL; }
 "<=" { return MENORIGUAL; }
 "+" { return MAS; }
+"%" { return MODULO; }
+"++" {return INCR;}
 "-" { return MENOS; }
+"--" {return DECR;}
 "/"[^/*] { return DIVISION; }
 "*" { return MULTIPLICACION; }
 "^" { return ELEVADO; }
-"=" { return IGUAL; }
 "<<" { return DESPLAZAMIENTOIZQ; }
 ">>" { return DESPLAZAMIENTODERECHA; }
 "&&" { return AND; }
@@ -102,7 +117,8 @@ if { return IF; }
 else { return ELSE; }
 for { return FOR; }
 while { return WHILE; }
-local { return LOCAL; }
+def { return DEF; }
+pass { return PASS; }
 in { return IN; }
 "," { return COMA; }
 int { return INTPAL; }
@@ -112,43 +128,48 @@ char { return CHARPAL; }
 bool { return BOOLPAL; }
 return {return RETURNPAL;}
 print {return PRINT;} // Palabra reservada print
-import {return IMPORT;}
 ";" {return PUNTOCOMA;} // Para el for
 println {return PRINTLN; }
 splice {return SPLICE; }
 size {return SIZE;}
-#main {return MAIN;}
+main {return MAIN;}
 "." {return PUNTO;}
 byte {return BYTEPAL;}
 null {return NULO; }
 free { return FREE_MEM; }
 void {return VOID; }
+continue {return CONTINUE;}
+break {return BREAK;}
+"&" {return REFERENCE;}
 
 {letter}{letdig}* {return IDENTIF;} /* Identificador de una variable (NOTA: no añadir palabras reservadas debajo, o no las contempla) */
 
 "/*" { BEGIN COMMENT; }
 <COMMENT>. ;
-<COMMENT>\n {line++;}
+<COMMENT>\n {lineno++;}
 <COMMENT>"*/" {BEGIN INITIAL;}
 
-\n {line++;}
+\n {lineno++;}
 
 [ \t] {} /*Ignora tabuladores y espacios*/
-"/""/".*\n {line++;} /* Ignora comentario de línea y continúa */
+"/""/".*\n {lineno++;} /* Ignora comentario de línea y continúa */
 . { error("Expression not recognized."); }
 <<EOF>> { return 0; }
 %%
+
+/*
 
 int main(int argc, char** argv) {
 	int s;
 	if(argc > 1) yyin = fopen(argv[1], "r");
 	do {
 		s = yylex();
-		printf("Detected a %i token in line %i\n", s, line);
+		printf("Detected a %i token in lineno %i\n", s, lineno);
 	} while(s != 0);
 	return 0;
 }
 
 void error(char* msg) {
-	printf("Lexical error in line %i: %s\n", line, msg);
+	printf("Lexical error in lineno %i: %s\n", lineno, msg);
 }
+*/
