@@ -1,5 +1,20 @@
 # Compilador para el lenguaje Tokke
 
+## Instalación
+
+    gcc -o IQ Q.h IQ.o Qlib.c
+    ./compilar.sh
+
+## Compilación
+
+    ./tkc [-g] file.tk
+
+El parámetro -g muestra contenido de la tabla de símbolos
+
+## Ejecución
+
+    ./IQ maquina.q.c
+
 ## Tipos de datos
 
 | Tipo | Ejemplo |

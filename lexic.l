@@ -1,66 +1,9 @@
 %option noyywrap
 
 %{
+#include "symbol_table.h"
 #include "SINTAX.tab.h"
 
-/*
-#define INTEGER 1
-#define FLOAT 2
-#define DOUBLE 3
-#define CHARACTER 4
-#define BOOL 5
-#define BYTE 6
-#define ABRELLAVE 7
-#define CIERRALLAVE 8
-#define ABREPARENTESIS 9
-#define CIERRAPARENTESIS 10
-#define ABRECORCHETE 11
-#define CIERRACORCHETE 12
-#define MAYOR 13
-#define MENOR 14
-#define IGUALA 15
-#define DISTINTO 16
-#define MAYORIGUAL 17
-#define MENORIGUAL 18
-#define MAS 19
-#define MENOS 20
-#define DIVISION 21
-#define MULTIPLICACION 22
-#define ELEVADO 23
-#define IGUAL 24
-#define DESPLAZAMIENTOIZQ 25
-#define DESPLAZAMIENTODERECHA 26
-#define AND 27
-#define OR 28
-#define XOR 29
-#define NOT 30
-#define IF 31
-#define ELSE 32
-#define FOR 33
-#define WHILE 34
-#define LOCAL 35
-#define IN 36
-#define COMA 37
-#define INTPAL 38
-#define DOUBLEPAL 39
-#define FLOATPAL 40
-#define CHARPAL 41
-#define BOOLPAL 42
-#define RETURNPAL 43
-#define IDENTIF 44
-#define PRINT 45
-#define PUNTOCOMA 46
-#define IMPORT 47
-#define PRINTLN 48
-#define SPLICE 49
-#define SIZE 50
-#define PUNTO 51
-#define MAIN 52
-#define BYTEPAL 53
-#define NULO 54
-#define FREE_MEM 55
-#define VOID 56
-*/
 
 int lineno = 1;
 int comment = 0;
@@ -74,14 +17,68 @@ letdig {letter}|{digit}
 diglet {digit}|{letter}
 
 %%
-{digit}+ { return INTEGER; }
-{digit}+"."{digit}+f { return FLOAT; }
-{digit}+"."{digit}+ { return DOUBLE; }
-\".*\" { return STRING; }
-"'"."'" { return CHARACTER; }
-"'"\\[nt0r]"'" {return CHARACTER;}
-(true|false) { return BOOL; }
-("+"|-)?{digit}+b { return BYTE; }
+{digit}+ { yylval.tipo_dato = INT_TYPE;
+           Value v;
+           v.int_val = atoi(yytext);
+           yylval.val = v;
+           return INTEGER; }
+{digit}+"."{digit}+f { yylval.tipo_dato = FLOAT_TYPE;
+                       Value v;
+                       char* pend;
+                       v.float_val = strtof(yytext, &pend);
+                       yylval.val = v;
+                       return FLOAT; }
+{digit}+"."{digit}+ { yylval.tipo_dato = DOUBLE_TYPE;
+                      Value v;
+                      v.double_val = atof(yytext);
+                      yylval.val = v;
+                      return DOUBLE; }
+\".*\" {
+        // Quitar comillas
+        int str_size = strlen(yytext) - 2;
+        char* str = malloc(str_size*sizeof(char));
+        for(int i = 1; i < strlen(yytext)-1; i++) str[i-1] = yytext[i];
+        Value v;
+        v.str_val = str;
+        yylval.val = v;
+        return STRING;
+       }
+"'"."'" { yylval.tipo_dato = CHAR_TYPE;
+          Value v;
+          v.char_val = yytext[1];
+          yylval.val = v;
+          return CHARACTER; }
+"'"\\[nt0r]"'" { yylval.tipo_dato = CHAR_TYPE;
+                 Value v;
+                 if(yytext[2] == 'n') {
+                    v.char_val = '\n';
+                 } else
+                 if(yytext[2] == 't') {
+                    v.char_val = '\t';
+                 } else
+                 if(yytext[2] == '0') {
+                    v.char_val = '\0';
+                 } else
+                 if(yytext[2] == 'r') {
+                    v.char_val = '\r';
+                 }
+                 yylval.val = v;
+                 return CHARACTER;}
+(true|false) { yylval.tipo_dato = BOOL_TYPE;
+               Value v;
+               if(strcmp(yytext, "true") == 0) v.bool_val = 1;
+               else if(strcmp(yytext, "false") == 0) v.bool_val = 0;
+               yylval.val = v;
+               return BOOL; }
+("+"|-)?{digit}+b { yylval.tipo_dato = BYTE_TYPE;
+                    Value v;
+                    int tam = strlen(yytext)-1;
+                    char *mybyte = malloc(tam*sizeof(char));
+                    for(int i = 0; i < tam; i++) mybyte[i] = yytext[i];
+
+                    v.byte_val = atoi(mybyte);
+                    yylval.val = v;
+                    return BYTE; }
 "{" { return ABRELLAVE; }
 "}" { return CIERRALLAVE; }
 "(" { return ABREPARENTESIS; }
@@ -121,55 +118,49 @@ def { return DEF; }
 pass { return PASS; }
 in { return IN; }
 "," { return COMA; }
-int { return INTPAL; }
-double { return DOUBLEPAL; }
-float { return FLOATPAL; }
-char { return CHARPAL; }
-bool { return BOOLPAL; }
+int { yylval.tipo_dato = INT_TYPE; return INTPAL; }
+double { yylval.tipo_dato = DOUBLE_TYPE; return DOUBLEPAL; }
+float { yylval.tipo_dato = FLOAT_TYPE; return FLOATPAL; }
+char { yylval.tipo_dato = CHAR_TYPE; return CHARPAL; }
+bool { yylval.tipo_dato = BOOL_TYPE; return BOOLPAL; }
 return {return RETURNPAL;}
 print {return PRINT;} // Palabra reservada print
 ";" {return PUNTOCOMA;} // Para el for
 println {return PRINTLN; }
 splice {return SPLICE; }
 size {return SIZE;}
-main {return MAIN;}
+main {
+  yylval.id = yytext;
+  return MAIN;}
 "." {return PUNTO;}
-byte {return BYTEPAL;}
-null {return NULO; }
+byte {yylval.tipo_dato = BYTE_TYPE; return BYTEPAL;}
+null {
+  yylval.tipo_dato = NULL_TYPE;
+  Value v;
+  yylval.val = v;
+  return NULO;
+}
 free { return FREE_MEM; }
-void {return VOID; }
+void {yylval.tipo_dato = VOID_TYPE; return VOID; }
 continue {return CONTINUE;}
 break {return BREAK;}
 "&" {return REFERENCE;}
 
-{letter}{letdig}* {return IDENTIF;} /* Identificador de una variable (NOTA: no añadir palabras reservadas debajo, o no las contempla) */
+{letter}{letdig}* {//insert(yytext, strlen(yytext), NO_CAT, lineno);
+  yylval.id = malloc(strlen(yytext)*sizeof(char));
+  for(int i = 0; i < strlen(yytext); i++) yylval.id[i] = yytext[i];
+  return IDENTIF;} /* Identificador de una variable (NOTA: no añadir palabras reservadas debajo, o no las contempla) */
 
 "/*" { BEGIN COMMENT; }
 <COMMENT>. ;
 <COMMENT>\n {lineno++;}
 <COMMENT>"*/" {BEGIN INITIAL;}
 
-\n {lineno++;}
+\n {lineno++; }
 
 [ \t] {} /*Ignora tabuladores y espacios*/
 "/""/".*\n {lineno++;} /* Ignora comentario de línea y continúa */
+
 . { error("Expression not recognized."); }
 <<EOF>> { return 0; }
 %%
-
-/*
-
-int main(int argc, char** argv) {
-	int s;
-	if(argc > 1) yyin = fopen(argv[1], "r");
-	do {
-		s = yylex();
-		printf("Detected a %i token in lineno %i\n", s, lineno);
-	} while(s != 0);
-	return 0;
-}
-
-void error(char* msg) {
-	printf("Lexical error in lineno %i: %s\n", lineno, msg);
-}
-*/
