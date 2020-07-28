@@ -1,0 +1,8 @@
+
+char x
+
+def int main() {
+  // char x // variable redeclarada
+  int n = 9
+  print(x)
+}

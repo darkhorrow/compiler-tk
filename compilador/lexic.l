@@ -36,8 +36,9 @@ diglet {digit}|{letter}
 \".*\" {
         // Quitar comillas
         int str_size = strlen(yytext) - 2;
-        char* str = malloc(str_size*sizeof(char));
+        char* str = malloc((str_size + 1)*sizeof(char));
         for(int i = 1; i < strlen(yytext)-1; i++) str[i-1] = yytext[i];
+        str[strlen(yytext)-1] = '\0';
         Value v;
         v.str_val = str;
         yylval.val = v;
@@ -149,6 +150,7 @@ break {return BREAK;}
 {letter}{letdig}* {//insert(yytext, strlen(yytext), NO_CAT, lineno);
   yylval.id = malloc(strlen(yytext)*sizeof(char));
   for(int i = 0; i < strlen(yytext); i++) yylval.id[i] = yytext[i];
+  //printf("Err %s\n", yylval.id);
   return IDENTIF;} /* Identificador de una variable (NOTA: no añadir palabras reservadas debajo, o no las contempla) */
 
 "/*" { BEGIN COMMENT; }

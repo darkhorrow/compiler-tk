@@ -26,6 +26,17 @@
 #define INCR_OP 29
 #define DECR_OP 30
 
+// Statement
+#define RETURN_STAT 31
+#define IF_STAT 32
+#define FOR_STAT 33
+#define WHILE_STAT 34
+#define SPLICE_STAT 36
+#define PASS_STAT 37
+#define ASIG_STAT 38
+#define DECL_STAT 39
+#define CONTINUE_STAT 40
+#define BREAK_STAT 41
 
 typedef union Value {
   char char_val;
@@ -61,6 +72,7 @@ typedef struct node {
   char *name; // nombre
   int size; // tamaño name
   int scope;
+  int scope_func;
 
   int address; // direccion almacenamiento de variables
   int function_tag; // numero de etiqueta a la que saltar cuando se hace una llamada a funcion
@@ -92,20 +104,55 @@ typedef struct Operacion {
   int op;
 } Operacion;
 
+typedef struct Statement {
+  int *tags;
+
+  int type;
+  int isArray;
+
+  int category;
+
+  int scope;
+  struct Statement *next;
+
+} Statement;
+
 
 #define TAM 50
 static node **hash_table;
+
+static int stack_idx;
+static int *stack;
+
+static int stack_idx_continue;
+static int *stack_continue;
 
 void init_table();
 unsigned int hash(char *key);
 void insert(char *name, int len, int type, int lineno);
 void insert_sinlen(char *name, int type, int lineno);
 node *lookup(char *name);
-node *lookup_scope(char *name, int scope);
+node *lookup_scope(char *name, int scope, int scope_fun);
 void remove_hash(char *name);
 
 void hide_scope();
 void incr_scope();
+void incr_scope_func();
 int get_scope();
+int get_scope_func();
+void set_scope_func(int f);
 
+char* datatypeToString(int type);
 void writetable();
+
+// PILA break
+void init_stack_break();
+void push_break(int et);
+int pop_break();
+int top_break();
+
+// PILA continue
+void init_stack_continue();
+void push_continue(int et);
+int pop_continue();
+int top_continue();

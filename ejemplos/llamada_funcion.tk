@@ -1,0 +1,9 @@
+
+def double funcion(int a, double b) {
+  return b
+}
+
+def int main() {
+  double x = funcion(2, 3.534)
+  print(x)
+}

@@ -1,0 +1,55 @@
+
+def int main() {
+  // tipo double
+  double a = 2.4
+  double b = 3.1
+  print("Double 2.4 + 3.1 = ")
+  println(a + b)
+
+  // tipo float
+  print("Float 3.1f + 2.4f = ")
+  float c = 3.1f
+  float d = 2.4f
+  println(c + d)
+
+  // exponente
+  print("Exponente 3 ^ 2 = ")
+  int e = 3
+  int f = 2
+  println(e ^ f)
+  
+  // bytes
+  byte g = 3b
+  print("Desplazamiento izquierda: ")
+  println(g << 1)
+
+  print("Desplazamiento derecha: ")
+  println(g >> 1)
+
+  byte h = 3b
+  byte i = 2b
+  print("XOR : ")
+  println(h ^^ i)
+
+  print("Negar : ")
+  println(!i)
+
+  print("Negar bool : ")
+  bool j = true
+  print(j)
+
+  if(j) {
+    j = false
+  }
+  print(" ")
+  print(j)
+  print(" ")
+
+  if(j) {
+    j = false
+  } else {
+    j = true
+  }
+  println(j)
+
+}

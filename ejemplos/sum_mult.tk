@@ -1,0 +1,21 @@
+int a = 3
+int b = 7
+
+def int suma(int n , int m) {
+	return n + m
+}
+
+def int mult(int n , int m) {
+	return n * m
+}
+
+def int main() {
+
+	int n = 10
+	int m = 7
+
+	println(mult(suma(a, n), suma(b, m) ) )
+	//3 + 10
+	//7 + 7
+	//14*13 = 182
+}
